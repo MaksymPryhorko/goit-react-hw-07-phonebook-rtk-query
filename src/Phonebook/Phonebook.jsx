@@ -1,39 +1,34 @@
-import { useSelector, useDispatch } from "react-redux";
+import { useFetchContactsQuery } from "redux/contacts-rtkq";
 import { useEffect } from "react";
+import { Notify } from "notiflix";
 
 import Form from "./Form";
 import ContactList from "./ContactList";
 import Filter from "./Filter";
 import style from "./Phonebook.module.css";
-import { getError, getIsLoading } from "../redux/contacts-selectors";
-import { fetchContacts } from "redux/contacts-operations";
 import Loading from "react-loader-spinner";
 
 export default function Phonebook() {
-  const dispatch = useDispatch();
-  const errorState = useSelector(getError);
-  const isLoading = useSelector(getIsLoading);
+  const { data, error, isFetching } = useFetchContactsQuery("");
 
   useEffect(() => {
-    errorState && alert(errorState);
-  });
-
-  useEffect(() => {
-    dispatch(fetchContacts());
-  }, []);
+    if (error) {
+      Notify.failure(`Error: ${error.status} ${error.data}`);
+    }
+  }, [error]);
 
   return (
     <section className={style.mainSection}>
       <h1>Phonebook</h1>
-      <Form />
+      {data && <Form contacts={data} />}
 
       <div className={style.containerContacts}>
         <h2>Contacts:</h2>
         <Filter />
-        {isLoading && (
+        {isFetching && (
           <Loading type="TailSpin" color="#00BFFF" height={40} width={40} />
         )}
-        <ContactList />
+        {data && <ContactList />}
       </div>
     </section>
   );

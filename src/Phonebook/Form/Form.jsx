@@ -1,16 +1,19 @@
-import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useAddContactMutation } from "redux/contacts-rtkq";
+import { Notify } from "notiflix";
 
 import style from "Phonebook/Form/Form.module.css";
-import { getItems } from "redux/contacts-selectors";
-import { addContact } from "redux/contacts-operations";
 
-export default function Form() {
+export default function Form({ contacts }) {
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
+  const [addContact, { isLoading, error }] = useAddContactMutation();
 
-  const items = useSelector(getItems);
-  const dispatch = useDispatch();
+  useEffect(() => {
+    if (error) {
+      Notify.failure(`Error: ${error.status}`);
+    }
+  }, [error]);
 
   const handleChange = (e) => {
     const { name, value } = e.currentTarget;
@@ -30,7 +33,9 @@ export default function Form() {
   };
 
   const checkedDuplicate = () => {
-    return items.find((item) => item.name.toLowerCase() === name.toLowerCase());
+    return contacts.find(
+      (contact) => contact.name.toLowerCase() === name.toLowerCase()
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -43,7 +48,7 @@ export default function Form() {
       name,
       number,
     };
-    dispatch(addContact(contact));
+    addContact(contact);
     reset();
   };
 
@@ -80,7 +85,7 @@ export default function Form() {
         />
         Number
       </label>
-      <button className={style.buttonForm} type="submit">
+      <button className={style.buttonForm} disabled={isLoading} type="submit">
         Add contact
       </button>
     </form>

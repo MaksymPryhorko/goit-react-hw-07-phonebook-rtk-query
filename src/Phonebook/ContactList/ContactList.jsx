@@ -1,37 +1,18 @@
-import { useSelector, useDispatch } from "react-redux";
-import React from "react";
-
-import contactsActions from "redux/contacts-actions";
-import style from "Phonebook/ContactList/ContactList.module.css";
-import { getVisibleContacts } from "redux/contacts-selectors";
-import { deleteContact } from "redux/contacts-operations";
+import ContactListItem from "Phonebook/ContactListItem";
+import { getVisibleContacts, getFilter } from "redux/contacts-selectors";
+import { useFetchContactsQuery } from "redux/contacts-rtkq";
+import { useSelector } from "react-redux";
 
 export default function ContactList() {
-  const dispatch = useDispatch();
-  const items = useSelector(getVisibleContacts);
-
-  async function onClickDeleteContact(id) {
-    const statusDelete = await dispatch(deleteContact(id));
-    if (statusDelete.type === "contacts/deleteContact/fulfilled") {
-      dispatch(contactsActions.deleteContact(id));
-    }
-  }
+  const { data: contacts } = useFetchContactsQuery("");
+  const filter = useSelector(getFilter);
+  const visibleContacts = getVisibleContacts(contacts, filter);
 
   return (
     <ul>
-      {items.length > 0 &&
-        items.map((item) => (
-          <li key={item.id} className={style.contactListItem}>
-            <button
-              className={style.btnDeleteContact}
-              type="button"
-              onClick={() => onClickDeleteContact(item.id)}
-            >
-              delete
-            </button>
-            {item.name}:{" "}
-            <span className={style.numberPhone}>{item.number}</span>
-          </li>
+      {visibleContacts.length > 0 &&
+        contacts.map((contact) => (
+          <ContactListItem key={contact.id} {...contact} />
         ))}
     </ul>
   );
